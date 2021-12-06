@@ -1,6 +1,6 @@
 enum TaskStatus {
-  INCOMPLETE,
-  COMPLETE,
+    INCOMPLETE,
+    COMPLETE,
 }
 
-export default TaskStatus;
+export default TaskStatus

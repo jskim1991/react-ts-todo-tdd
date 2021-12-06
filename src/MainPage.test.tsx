@@ -5,25 +5,24 @@ import userEvent from '@testing-library/user-event'
 import * as TaskClient from './TaskClient'
 import TaskStatus from './models/TaskStatus'
 
-jest.mock('./TaskClient')
+import { emptySaveTaskStub, emptyTaskStub, oneTaskStub } from './testhelpers/server/handlers'
+import { mswServer } from './testhelpers/server/mockHttpServer'
+import Task from './models/Task'
+
 describe('Main Page', () => {
     describe('Static tests', () => {
-        beforeEach(async () => {
-            TaskClient.fetchTasks.mockResolvedValue([])
-            TaskClient.saveTasks.mockResolvedValue([])
-            await waitFor(() => {
-                render(<App />)
-            })
+        beforeEach(() => {
+            mswServer.use(emptyTaskStub, emptySaveTaskStub)
+            render(<App />)
         })
 
-        it('should render text input and submit button', function () {
+        it('should render text input and submit button', () => {
             expect(screen.getByPlaceholderText(/Add a task/)).toBeInTheDocument()
             expect(screen.getByText(/Add/)).toBeInTheDocument()
         })
 
         it('should clear input on submit', () => {
             const input = screen.getByPlaceholderText(/Add a task/) as HTMLInputElement
-
             userEvent.type(input, 'Finish course')
             userEvent.click(screen.getByText(/Add/))
 
@@ -54,106 +53,91 @@ describe('Main Page', () => {
             userEvent.type(screen.getByPlaceholderText(/Add a task/) as HTMLInputElement, 'Finish course')
             userEvent.click(screen.getByText(/Add/))
             userEvent.click(screen.getByText('Finish course'))
+
             expect(screen.getByText(/Finish course/).nextSibling!.textContent!.length).toBeGreaterThan(0)
         })
     })
 
     describe('HTTP test', () => {
+        beforeEach(() => {
+            mswServer.use(emptyTaskStub, emptySaveTaskStub)
+        })
+
+        afterEach(() => jest.restoreAllMocks())
+
         it('should fetch tasks from backend', async () => {
             const fetchSpy = jest.spyOn(TaskClient, 'fetchTasks').mockResolvedValue([])
 
             render(<App />)
 
-            await waitFor(() => {
-                expect(fetchSpy).toHaveBeenCalledTimes(1)
-            })
+            await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1))
         })
 
         it('should render fetched tasks', async () => {
-            TaskClient.fetchTasks.mockResolvedValue([
-                {
-                    id: '1',
-                    name: 'Finish course',
-                    createdOn: new Date(),
-                    status: TaskStatus.INCOMPLETE,
-                },
-            ])
+            mswServer.use(oneTaskStub)
 
             render(<App />)
 
-            await waitFor(() => {
-                expect(screen.getByText(/Finish course/)).toBeInTheDocument()
-            })
+            expect(await screen.findByText(/Finish course/)).toBeInTheDocument()
         })
 
         it('should send http post on submit', async () => {
-            TaskClient.fetchTasks.mockResolvedValue([])
             const spy = jest.spyOn(TaskClient, 'saveTasks').mockResolvedValue([])
 
-            await waitFor(() => {
-                render(<App />)
-            })
+            render(<App />)
 
             userEvent.type(screen.getByPlaceholderText(/Add a task/) as HTMLInputElement, 'Finish course')
             userEvent.click(screen.getByText(/Add/))
 
-            expect(spy).toHaveBeenCalledWith([
+            expect(spy).toHaveBeenCalledWith(expect.any(String))
+            const tasksArgument: Task[] = JSON.parse(spy.mock.calls[0][0].toString())
+            expect(tasksArgument[0]).toEqual(
                 expect.objectContaining({
                     id: expect.any(String),
-                    name: 'Finish course',
-                    createdOn: expect.any(Date),
+                    name: expect.any(String),
+                    createdOn: expect.any(String),
                     status: TaskStatus.INCOMPLETE,
-                }),
-            ])
+                })
+            )
         })
 
         it('should send http post on status change', async () => {
-            const now = new Date()
-            TaskClient.fetchTasks.mockResolvedValue([
-                {
-                    id: '1',
-                    name: 'Finish course',
-                    createdOn: now,
-                    status: TaskStatus.INCOMPLETE,
-                },
-            ])
+            mswServer.use(oneTaskStub, emptySaveTaskStub)
             const spy = jest.spyOn(TaskClient, 'saveTasks').mockResolvedValue([])
 
-            await waitFor(() => {
-                render(<App />)
-            })
+            render(<App />)
 
-            userEvent.click(screen.getByText(/Finish course/))
-            expect(spy).toHaveBeenCalledWith([
+            userEvent.click(await screen.findByText(/Finish course/))
+            expect(spy).toHaveBeenCalledWith(expect.any(String))
+            const firstTasksArgument: Task[] = JSON.parse(spy.mock.calls[0][0].toString())
+            expect(firstTasksArgument[0]).toEqual(
                 expect.objectContaining({
-                    id: '1',
-                    name: 'Finish course',
-                    createdOn: now,
-                    completedOn: expect.any(Date),
+                    id: expect.any(String),
+                    name: expect.any(String),
+                    createdOn: expect.any(String),
+                    completedOn: expect.any(String),
                     status: TaskStatus.COMPLETE,
-                }),
-            ])
+                })
+            )
 
             userEvent.click(screen.getByText(/Finish course/))
-            expect(spy).toHaveBeenCalledWith([
+            expect(spy).toHaveBeenCalledWith(expect.any(String))
+            const secondTasksArgument: Task[] = JSON.parse(spy.mock.calls[1][0].toString())
+            expect(secondTasksArgument[0]).toEqual(
                 expect.objectContaining({
-                    id: '1',
-                    name: 'Finish course',
-                    createdOn: now,
-                    completedOn: undefined,
+                    id: expect.any(String),
+                    name: expect.any(String),
+                    createdOn: expect.any(String),
                     status: TaskStatus.INCOMPLETE,
-                }),
-            ])
+                })
+            )
         })
     })
 
     describe('Input Validation', () => {
-        beforeEach(async () => {
-            TaskClient.fetchTasks.mockResolvedValue([])
-            TaskClient.saveTasks.mockResolvedValue([])
-            await waitFor(() => {
-                render(<App />)
-            })
+        beforeEach(() => {
+            mswServer.use(emptyTaskStub, emptySaveTaskStub)
+            render(<App />)
         })
 
         it('should show error when empty input is submitted', () => {

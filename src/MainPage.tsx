@@ -9,7 +9,16 @@ const MainPage = () => {
     const [tasks, setTasks] = useState<Task[]>([])
 
     useEffect(() => {
-        fetchTasks().then(setTasks)
+        let isSubscribed = true
+        fetchTasks().then((tasks) => {
+            if (isSubscribed) {
+                setTasks(tasks)
+            }
+        })
+
+        return () => {
+            isSubscribed = false
+        }
     }, [])
 
     const onSubmitHandler = (e: FormEvent) => {
@@ -23,8 +32,8 @@ const MainPage = () => {
 
         const newTask = new Task(enteredText)
         const updatedTasks = [...tasks, newTask]
+        saveTasks(JSON.stringify(updatedTasks)).then()
         setTasks(updatedTasks)
-        saveTasks(updatedTasks).then()
 
         setErrorMessage('')
         inputRef.current!.value = ''
@@ -42,7 +51,7 @@ const MainPage = () => {
             taskToModify.completedOn = undefined
         }
         setTasks(copiedTasks)
-        saveTasks(copiedTasks).then()
+        saveTasks(JSON.stringify(copiedTasks)).then()
     }
 
     const inCompleteTasks =
