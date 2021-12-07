@@ -24,4 +24,4 @@ export const saveTasks_empty_response = rest.put(firebasePath, async (req, res, 
     return res(ctx.json([]))
 })
 
-export const handlers = [fetchTasks_incompleteTask_response]
+export const handlers = [fetchTasks_empty_response, saveTasks_empty_response]
