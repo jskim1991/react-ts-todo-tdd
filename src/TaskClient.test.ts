@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { fetchTasks, saveTasks } from './TaskClient'
 import TaskStatus from './models/TaskStatus'
+import Task from './models/Task'
 
 describe('Task Client', () => {
     it('fetchTasks should invoke axios get', () => {
@@ -12,7 +13,7 @@ describe('Task Client', () => {
     })
 
     it('fetchTasks should return Task list', async () => {
-        const now = new Date()
+        const now = Date.now()
         jest.spyOn(axios, 'get').mockResolvedValue({
             data: [
                 {
@@ -24,7 +25,7 @@ describe('Task Client', () => {
             ],
         })
 
-        const data = await fetchTasks()
+        const data: Task[] = await fetchTasks()
 
         expect(data).toEqual([
             {
@@ -37,9 +38,9 @@ describe('Task Client', () => {
     })
 
     it('saveTasks should invoke axios put', () => {
-        const now = new Date()
+        const now = Date.now()
         const spy = jest.spyOn(axios, 'put').mockResolvedValue([])
-        const tasks = [
+        const tasks: Task[] = [
             {
                 id: '1',
                 name: 'Finish course',
@@ -48,28 +49,25 @@ describe('Task Client', () => {
             },
         ]
 
-        saveTasks(JSON.stringify(tasks))
+        saveTasks(tasks)
 
-        expect(spy).toHaveBeenCalledWith(
-            'https://react-ts-todo-28c59-default-rtdb.firebaseio.com/tasks.json',
-            JSON.stringify([
-                {
-                    id: '1',
-                    name: 'Finish course',
-                    createdOn: now,
-                    status: TaskStatus.COMPLETE,
-                },
-            ])
-        )
+        expect(spy).toHaveBeenCalledWith('https://react-ts-todo-28c59-default-rtdb.firebaseio.com/tasks.json', [
+            {
+                id: '1',
+                name: 'Finish course',
+                createdOn: now,
+                status: TaskStatus.COMPLETE,
+            },
+        ])
     })
 
-    it('saveTasks should return response', async () => {
+    it('saveTasks should return axios response', async () => {
         jest.spyOn(axios, 'put').mockResolvedValue({
             data: [],
             status: 200,
         })
 
-        const putResult = await saveTasks(JSON.stringify([]))
+        const putResult = await saveTasks([])
 
         expect(putResult).toEqual({
             data: [],

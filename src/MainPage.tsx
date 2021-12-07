@@ -32,7 +32,7 @@ const MainPage = () => {
 
         const newTask = new Task(enteredText)
         const updatedTasks = [...tasks, newTask]
-        saveTasks(JSON.stringify(updatedTasks)).then()
+        saveTasks(updatedTasks).then()
         setTasks(updatedTasks)
 
         setErrorMessage('')
@@ -45,13 +45,13 @@ const MainPage = () => {
         const taskToModify = copiedTasks[index]
         if (taskToModify.status === TaskStatus.INCOMPLETE) {
             taskToModify.status = TaskStatus.COMPLETE
-            taskToModify.completedOn = new Date()
+            taskToModify.completedOn = Date.now()
         } else {
             taskToModify.status = TaskStatus.INCOMPLETE
             taskToModify.completedOn = undefined
         }
         setTasks(copiedTasks)
-        saveTasks(JSON.stringify(copiedTasks)).then()
+        saveTasks(copiedTasks).then()
     }
 
     const inCompleteTasks =

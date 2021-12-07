@@ -1,16 +1,17 @@
 import TaskStatus from './TaskStatus'
+import { v4 as uuidv4 } from 'uuid'
 
 class Task {
     id: string
     name: string
-    createdOn: Date
-    completedOn?: Date
+    createdOn: number
+    completedOn?: number
     status: TaskStatus
 
     constructor(taskName: string) {
-        this.id = new Date().toISOString()
+        this.id = uuidv4()
         this.name = taskName
-        this.createdOn = new Date()
+        this.createdOn = Date.now()
         this.status = TaskStatus.INCOMPLETE
     }
 }

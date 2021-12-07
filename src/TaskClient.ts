@@ -6,6 +6,6 @@ export const fetchTasks = async (): Promise<Task[]> => {
     return data
 }
 
-export const saveTasks = async (tasks: string) => {
+export const saveTasks = async (tasks: Task[]) => {
     return await axios.put('https://react-ts-todo-28c59-default-rtdb.firebaseio.com/tasks.json', tasks)
 }
