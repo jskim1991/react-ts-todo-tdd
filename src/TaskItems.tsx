@@ -7,7 +7,7 @@ const TaskItems: React.FC<{ tasks: Task[]; onClickHandler: Function }> = (props)
             {props.tasks.map((task) => (
                 <li key={task.id} onClick={() => props.onClickHandler(task.id)}>
                     <div>{task.name}</div>
-                    {task.completedOn ? <span>{`${task.completedOn.toLocaleString()}`}</span> : ''}
+                    {task.completedOn ? <span>{`${new Date(task.completedOn).toLocaleString()}`}</span> : ''}
                 </li>
             ))}
         </ul>

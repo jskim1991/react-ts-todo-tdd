@@ -2,8 +2,14 @@ import axios from 'axios'
 import { fetchTasks, saveTasks } from './TaskClient'
 import TaskStatus from './models/TaskStatus'
 import Task from './models/Task'
+import { mswServer } from './testhelpers/server/mockHttpServer'
+import { fetchTasks_incompleteTask_response } from './testhelpers/server/handlers'
 
 describe('Task Client', () => {
+    afterEach(() => {
+        jest.restoreAllMocks()
+    })
+
     it('fetchTasks should invoke axios get', () => {
         const spy = jest.spyOn(axios, 'get').mockResolvedValue([])
 
@@ -13,27 +19,17 @@ describe('Task Client', () => {
     })
 
     it('fetchTasks should return Task list', async () => {
-        const now = Date.now()
-        jest.spyOn(axios, 'get').mockResolvedValue({
-            data: [
-                {
-                    id: '1',
-                    name: 'Finish course',
-                    createdOn: now,
-                    status: TaskStatus.COMPLETE,
-                },
-            ],
-        })
+        mswServer.use(fetchTasks_incompleteTask_response)
 
         const data: Task[] = await fetchTasks()
 
         expect(data).toEqual([
-            {
-                id: '1',
+            expect.objectContaining({
+                id: expect.any(String),
                 name: 'Finish course',
-                createdOn: now,
-                status: TaskStatus.COMPLETE,
-            },
+                createdOn: expect.any(Number),
+                status: TaskStatus.INCOMPLETE,
+            }),
         ])
     })
 
@@ -62,16 +58,13 @@ describe('Task Client', () => {
     })
 
     it('saveTasks should return axios response', async () => {
-        jest.spyOn(axios, 'put').mockResolvedValue({
-            data: [],
-            status: 200,
-        })
-
         const putResult = await saveTasks([])
 
-        expect(putResult).toEqual({
-            data: [],
-            status: 200,
-        })
+        expect(putResult).toEqual(
+            expect.objectContaining({
+                data: [],
+                status: 200,
+            })
+        )
     })
 })

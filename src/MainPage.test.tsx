@@ -5,17 +5,12 @@ import userEvent from '@testing-library/user-event'
 import * as TaskClient from './TaskClient'
 import TaskStatus from './models/TaskStatus'
 
-import {
-    fetchTasks_empty_response,
-    fetchTasks_incompleteTask_response,
-    saveTasks_empty_response,
-} from './testhelpers/server/handlers'
+import { fetchTasks_incompleteTask_response, saveTasks_empty_response } from './testhelpers/server/handlers'
 import { mswServer } from './testhelpers/server/mockHttpServer'
 
 describe('Main Page', () => {
     describe('Static tests', () => {
         beforeEach(() => {
-            mswServer.use(fetchTasks_empty_response, saveTasks_empty_response)
             render(<App />)
         })
 
@@ -63,7 +58,7 @@ describe('Main Page', () => {
 
     describe('HTTP test', () => {
         beforeEach(() => {
-            mswServer.use(fetchTasks_empty_response, saveTasks_empty_response)
+            mswServer.use(fetchTasks_incompleteTask_response)
         })
 
         afterEach(() => jest.restoreAllMocks())
@@ -77,22 +72,20 @@ describe('Main Page', () => {
         })
 
         it('should render fetched tasks', async () => {
-            mswServer.use(fetchTasks_incompleteTask_response)
-
             render(<App />)
 
             expect(await screen.findByText(/Finish course/)).toBeInTheDocument()
         })
 
         it('should send http post on submit', async () => {
-            const spy = jest.spyOn(TaskClient, 'saveTasks').mockResolvedValue([] as any)
+            const putSpy = jest.spyOn(TaskClient, 'saveTasks').mockResolvedValue({ status: 200 } as any)
 
             render(<App />)
 
             userEvent.type(screen.getByPlaceholderText(/Add a task/) as HTMLInputElement, 'Finish course')
             userEvent.click(screen.getByText(/Add/))
 
-            expect(spy).toHaveBeenCalledWith([
+            expect(putSpy).toHaveBeenCalledWith([
                 expect.objectContaining({
                     id: expect.any(String),
                     name: expect.any(String),
@@ -103,13 +96,12 @@ describe('Main Page', () => {
         })
 
         it('should send http post on status change', async () => {
-            mswServer.use(fetchTasks_incompleteTask_response, saveTasks_empty_response)
-            const spy = jest.spyOn(TaskClient, 'saveTasks').mockResolvedValue([] as any)
+            const putSpy = jest.spyOn(TaskClient, 'saveTasks').mockResolvedValue({ status: 200 } as any)
 
             render(<App />)
 
             userEvent.click(await screen.findByText(/Finish course/))
-            expect(spy).toHaveBeenCalledWith([
+            expect(putSpy).toHaveBeenCalledWith([
                 expect.objectContaining({
                     id: expect.any(String),
                     name: expect.any(String),
@@ -120,7 +112,7 @@ describe('Main Page', () => {
             ])
 
             userEvent.click(screen.getByText(/Finish course/))
-            expect(spy).toHaveBeenCalledWith([
+            expect(putSpy).toHaveBeenCalledWith([
                 expect.objectContaining({
                     id: expect.any(String),
                     name: expect.any(String),
@@ -133,7 +125,6 @@ describe('Main Page', () => {
 
     describe('Input Validation', () => {
         beforeEach(() => {
-            mswServer.use(fetchTasks_empty_response, saveTasks_empty_response)
             render(<App />)
         })
 
