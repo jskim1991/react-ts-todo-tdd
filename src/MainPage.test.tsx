@@ -57,10 +57,6 @@ describe('Main Page', () => {
     })
 
     describe('HTTP test', () => {
-        beforeEach(() => {
-            mswServer.use(fetchTasks_incompleteTask_response)
-        })
-
         afterEach(() => jest.restoreAllMocks())
 
         it('should fetch tasks from backend', async () => {
@@ -72,6 +68,8 @@ describe('Main Page', () => {
         })
 
         it('should render fetched tasks', async () => {
+            mswServer.use(fetchTasks_incompleteTask_response)
+
             render(<App />)
 
             expect(await screen.findByText(/Finish course/)).toBeInTheDocument()
@@ -96,6 +94,7 @@ describe('Main Page', () => {
         })
 
         it('should send http post on status change', async () => {
+            mswServer.use(fetchTasks_incompleteTask_response)
             const putSpy = jest.spyOn(TaskClient, 'saveTasks').mockResolvedValue({ status: 200 } as any)
 
             render(<App />)
