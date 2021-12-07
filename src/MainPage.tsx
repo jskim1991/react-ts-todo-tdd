@@ -2,6 +2,7 @@ import React, { FormEvent, useEffect, useRef, useState } from 'react'
 import Task from './models/Task'
 import TaskStatus from './models/TaskStatus'
 import { fetchTasks, saveTasks } from './TaskClient'
+import TaskItems from './TaskItems'
 
 const MainPage = () => {
     const inputRef = useRef<HTMLInputElement>(null)
@@ -54,28 +55,6 @@ const MainPage = () => {
         saveTasks(copiedTasks).then()
     }
 
-    const inCompleteTasks =
-        tasks &&
-        tasks
-            .filter((task) => task.status === TaskStatus.INCOMPLETE)
-            .map((task) => (
-                <li key={task.id} onClick={() => onTaskItemClickHandler(task.id)}>
-                    <div>{task.name}</div>
-                </li>
-            ))
-    const completedTasks =
-        tasks &&
-        tasks
-            .filter((task) => task.status === TaskStatus.COMPLETE)
-            .map((task) => (
-                <li key={task.id} onClick={() => onTaskItemClickHandler(task.id)}>
-                    <div>
-                        <div>{task.name}</div>
-                        {task.completedOn ? <span>{`${task.completedOn.toLocaleString()}`}</span> : ''}
-                    </div>
-                </li>
-            ))
-
     return (
         <div>
             <form>
@@ -86,11 +65,17 @@ const MainPage = () => {
 
             <div>
                 <h1>Incomplete Tasks</h1>
-                <ul>{inCompleteTasks}</ul>
+                <TaskItems
+                    tasks={tasks.filter((task) => task.status === TaskStatus.INCOMPLETE)}
+                    onClickHandler={onTaskItemClickHandler}
+                />
             </div>
             <div>
                 <h1>Completed Tasks</h1>
-                <ul>{completedTasks}</ul>
+                <TaskItems
+                    tasks={tasks.filter((task) => task.status === TaskStatus.COMPLETE)}
+                    onClickHandler={onTaskItemClickHandler}
+                />
             </div>
         </div>
     )
