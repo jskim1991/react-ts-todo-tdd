@@ -21,7 +21,7 @@ describe('Task Client', () => {
     it('fetchTasks should return Task list', async () => {
         mswServer.use(fetchTasks_incompleteTask_response)
 
-        const data: Task[] = await fetchTasks()
+        const data = await fetchTasks()
 
         expect(data).toEqual([
             expect.objectContaining({
