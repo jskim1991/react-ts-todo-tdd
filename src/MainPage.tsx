@@ -1,25 +1,21 @@
 import React, { FormEvent, useEffect, useRef, useState } from 'react'
 import Task from './models/Task'
 import TaskStatus from './models/TaskStatus'
-import { fetchTasks, saveTasks } from './TaskClient'
 import TaskItems from './TaskItems'
+import { fetchTasks, saveTasks } from './http/TaskClient'
 
 const MainPage = () => {
     const inputRef = useRef<HTMLInputElement>(null)
     const [errorMessage, setErrorMessage] = useState<string>('')
     const [tasks, setTasks] = useState<Task[]>([])
 
-    useEffect(() => {
-        let isSubscribed = true
-        fetchTasks().then((tasks) => {
-            if (isSubscribed) {
-                setTasks(tasks)
-            }
-        })
+    const retrieveTasks = async () => {
+        const fetchedTasks = await fetchTasks()
+        setTasks(fetchedTasks)
+    }
 
-        return () => {
-            isSubscribed = false
-        }
+    useEffect(() => {
+        retrieveTasks()
     }, [])
 
     const onSubmitHandler = (e: FormEvent) => {

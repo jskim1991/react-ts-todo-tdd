@@ -1,9 +1,9 @@
 import axios from 'axios'
+import TaskStatus from '../models/TaskStatus'
+import Task from '../models/Task'
+import { mswServer } from '../testhelpers/server/mockHttpServer'
+import { fetchTasks_incompleteTask_response } from '../testhelpers/server/handlers'
 import { fetchTasks, saveTasks } from './TaskClient'
-import TaskStatus from './models/TaskStatus'
-import Task from './models/Task'
-import { mswServer } from './testhelpers/server/mockHttpServer'
-import { fetchTasks_incompleteTask_response } from './testhelpers/server/handlers'
 
 describe('Task Client', () => {
     afterEach(() => {
@@ -15,7 +15,7 @@ describe('Task Client', () => {
 
         fetchTasks()
 
-        expect(spy).toHaveBeenCalledWith('https://react-ts-todo-28c59-default-rtdb.firebaseio.com/tasks.json')
+        expect(spy).toHaveBeenCalledWith('http://firebase')
     })
 
     it('fetchTasks should return Task list', async () => {
@@ -47,7 +47,7 @@ describe('Task Client', () => {
 
         saveTasks(tasks)
 
-        expect(spy).toHaveBeenCalledWith('https://react-ts-todo-28c59-default-rtdb.firebaseio.com/tasks.json', [
+        expect(spy).toHaveBeenCalledWith('http://firebase', [
             {
                 id: '1',
                 name: 'Finish course',
@@ -57,14 +57,9 @@ describe('Task Client', () => {
         ])
     })
 
-    it('saveTasks should return axios response', async () => {
+    it('saveTasks should return void', async () => {
         const putResult = await saveTasks([])
 
-        expect(putResult).toEqual(
-            expect.objectContaining({
-                data: [],
-                status: 200,
-            })
-        )
+        expect(putResult).toEqual(expect.objectContaining({}))
     })
 })
